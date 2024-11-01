@@ -14,13 +14,20 @@ import { app } from '../../../firebase/server'
 export const POST: APIRoute = async ({ request, redirect }) => {
     const auth = getAuth(app)
     // Get data and check if all required fields are present here
-
+    const { email, password, name } = await request.json()
+    if (!email || !password || !name) {
+        return new Response('Missing email, password, or name', { status: 400 })
+    }
     try {
         // Create user here
-        //
-        //
-        //
-        //
+        const userRecord = await auth.createUser({
+            email,
+            password,
+            displayName: name,
+        })
+        console.log('Successfully created new user:', userRecord.uid)
+        return redirect('/signin')
+
     } catch (error) {
         console.log(error)
         return new Response(`Something went wrong`, {

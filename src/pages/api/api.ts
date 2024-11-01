@@ -2,6 +2,14 @@ import {
     collection,
     getFirestore,
     connectFirestoreEmulator,
+    orderBy,
+    query,
+    where,
+    limit,
+    getDocs,
+    addDoc,
+    deleteDoc,
+    doc
 } from 'firebase/firestore'
 import type { Product } from '../../utils/types'
 import { app } from '../../firebase/client'
@@ -25,6 +33,20 @@ export const fetchProducts = async (
     let totalPages = 0
 
     // Your code here
+    let q = query(productsRef, orderBy('id', 'asc'));
+
+    if (queryStr) {
+        q = query(productsRef, where('name', '>=', queryStr), orderBy('id', 'asc'))
+    }
+
+    const querySnapshot = await getDocs(q)
+    querySnapshot.forEach((doc) => {
+        const data = doc.data() as Product
+        products.push({ ...data, id: Number(doc.id) }); // Ensure `id` is a number
+    })
+
+    totalPages = Math.ceil(products.length / pageSize)
+
 
     return { products, totalPages }
 }
@@ -35,6 +57,18 @@ export const addProduct = async (product: Omit<Product, 'id'>) => {
     let newID = 0
 
     // Your code here
+    const productsRef = collection(db, 'products')
+    const q = query(productsRef, orderBy('id', 'desc'), limit(1))
+    const snapshot = await getDocs(q)
+
+    if (!snapshot.empty) {
+        const lastProduct = snapshot.docs[0].data() as Product
+        newID = lastProduct.id + 1
+    }
+
+    const newProduct = { ...product, id: newID }
+    await addDoc(productsRef, newProduct)
+
 
     return { id: newID, ...product }
 }
@@ -42,5 +76,17 @@ export const addProduct = async (product: Omit<Product, 'id'>) => {
 // TODO Finalize this function to delete a product from Firestore
 export const deleteProduct = async (productId: number) => {
     // Your code here
+    const productsRef = collection(db, 'products')
+    const q = query(productsRef, where('id', '==', productId))
+    const snapshot = await getDocs(q)
+
+    if (!snapshot.empty) {
+        const docToDelete = snapshot.docs[0]
+        await deleteDoc(doc(db, 'products', docToDelete.id))
+        return { id: productId }
+    }   else {
+        console.log("Product with the ID ${productId} not found")
+    }
+
     return { id: 0 }
 }
