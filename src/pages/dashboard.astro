@@ -3,22 +3,35 @@ import { app } from '../firebase/server'
 import { getAuth } from 'firebase-admin/auth'
 import Layout from '../layouts/Layout.astro'
 import App from '../components/App'
+import cookie from 'cookie'
+
 const auth = getAuth(app)
 
-// TODO Check if the user has an active session
-// HINT: See index.astro for a reference on how to do this
-// If not, redirect the user to the signin page
-// Your code here
+// Parse cookies from the request headers
+const cookies = cookie.parse(request.headers.get('cookie') || '')
+const sessionCookie = cookies.session
 
-// TODO Retrieve the session cookie and verify it
-// Use Firebase verifySessionCookie method to verify the session cookie
-// Your code here
+// Check if the user has an active session
+if (!sessionCookie) {
+    return new Response(null, { status: 302, headers: { Location: '/signin' } })
+}
 
-// Get the user details from the decoded cookie
-const user = await auth.getUser(decodedCookie.uid)
+try {
+    // Verify the session cookie using Firebase's verifySessionCookie method
+    const decodedCookie = await auth.verifySessionCookie(sessionCookie, true)
 
-// TODO If the user is not found, redirect the user to the signin page
-// Your code here
+    // Get user details from the decoded cookie
+    const user = await auth.getUser(decodedCookie.uid)
+
+    // If the user is not found, redirect to the signin page
+    if (!user) {
+        return new Response(null, { status: 302, headers: { Location: '/signin' } })
+    }
+} catch (error) {
+    // If session verification fails, redirect to the signin page
+    console.error('Session verification failed:', error)
+    return new Response(null, { status: 302, headers: { Location: '/signin' } })
+}
 ---
 
 <Layout title="dashboard">
