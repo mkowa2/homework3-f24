@@ -9,12 +9,15 @@ interface ProductListProps {
     totalPages: number
     setCurrentPage: (page: number) => void
 }
+
 const ProductList: React.FC<ProductListProps> = ({
     products,
     currentPage,
     totalPages,
     setCurrentPage,
 }) => {
+    const itemsPerPage = 10
+
     const renderPaginationLinks = () => {
         const links = []
         for (let i = 1; i <= totalPages; i++) {
@@ -35,30 +38,16 @@ const ProductList: React.FC<ProductListProps> = ({
         return links
     }
 
-    // TODO Render the products in the grid
-    // This component is given the full list of products and the current page
-    // Return a list of ProductCard components for the products on the current page
     const renderProducts = () => {
-        // Your code here
-        const links = []
-        const startingIndex = (currentPage - 1) * 10
-        const endingIndex = startingIndex + 10
-        for (let i = 1; i <= totalPages; i++) {
-            links.push(
-                <a
-                    key={i}
-                    href="#"
-                    onClick={(e) => {
-                        e.preventDefault()
-                        setCurrentPage(i)
-                    }}
-                    className={currentPage === i ? 'active' : ''}
-                >
-                    {i}
-                </a>
-            )
-        }
-            return links
+        const startIndex = (currentPage - 1) * itemsPerPage
+        const currentProducts = products.slice(
+            startIndex,
+            startIndex + itemsPerPage
+        )
+
+        return currentProducts.map((product) => (
+            <ProductCard key={product.id} product={product} />
+        ))
     }
 
     return (
