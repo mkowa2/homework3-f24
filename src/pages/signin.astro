@@ -3,12 +3,43 @@ import { app } from '../firebase/server'
 import { getAuth } from 'firebase-admin/auth'
 import Layout from '../layouts/Layout.astro'
 import '../styles/App.css'
+import cookie from 'cookie'
+
 
 // TODO Check if the user has an active session
 // If the session is verified, redirect the user to the dashboard
 // HINT: See index.astro for a reference on how to do this
-const auth = getAuth(app)
 // Your code here
+const auth = getAuth(app)
+
+// Check if the user has an active session
+export async function checkSession(request: Request) {
+    const cookies = cookie.parse(request.headers.get('cookie') || '')
+    const sessionCookie = cookies.session || ''
+
+    if (sessionCookie) {
+        try {
+            // Verify the session cookie
+            const decodedClaims = await auth.verifySessionCookie(sessionCookie)
+            if (decodedClaims) {
+                // Redirect to dashboard if session is valid
+                return new Response(null, {
+                    status: 302,
+                    headers: { Location: '/dashboard' },
+                })
+            }
+        } catch (error) {
+            console.error("Session verification failed:", error)
+            // Continue to the sign-in form if session verification fails
+        }
+    }
+}
+
+// Execute the session check and handle redirection if needed
+const redirectResponse = await checkSession(Astro.request)
+if (redirectResponse) {
+    return redirectResponse
+}
 ---
 
 <Layout title="Sign in">

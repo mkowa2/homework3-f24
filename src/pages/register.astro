@@ -4,12 +4,37 @@ import '../styles/register.css'
 import { app } from '../firebase/server'
 import { getAuth } from 'firebase-admin/auth'
 import '../styles/App.css'
+import cookie from 'cookie'
+
 const auth = getAuth(app)
 
-// TODO Check if the user has an active session
-// If the session is verified, redirect the user to the dashboard
-// HINT: See index.astro for a reference on how to do this
-// Your code here
+// Async function to handle session verification and redirection
+export async function checkSession(request: Request) {
+    const cookies = cookie.parse(request.headers.get('cookie') || '')
+    const sessionCookie = cookies.session || ''
+
+    if (sessionCookie) {
+        try {
+            // Verify the session cookie
+            const decodedClaims = await auth.verifySessionCookie(sessionCookie)
+            if (decodedClaims) {
+                // Redirect to dashboard if session is valid
+                return new Response(null, {
+                    status: 302,
+                    headers: { Location: '/dashboard' },
+                })
+            }
+        } catch (error) {
+            console.error("Session verification failed:", error)
+            // Continue to the register form if session verification fails
+        }
+    }
+}
+
+const redirectResponse = await checkSession(Astro.request)
+if (redirectResponse) {
+    return redirectResponse
+}
 ---
 
 <Layout title="Register">
