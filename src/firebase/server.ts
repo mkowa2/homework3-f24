@@ -1,6 +1,6 @@
 import type { ServiceAccount } from 'firebase-admin'
 import { initializeApp, cert } from 'firebase-admin/app'
-import serviceAccount from '../../server-credentials.json' with { type: 'json' }
+import serviceAccount from "../../server-credentials.json" with { type: 'json' }
 
 if (import.meta.env.PUBLIC_EMULATOR === '1') {
     console.log('Emulator Setting Up')
