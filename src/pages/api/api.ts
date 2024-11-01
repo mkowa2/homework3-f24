@@ -9,7 +9,7 @@ import {
     getDocs,
     addDoc,
     deleteDoc,
-    doc
+    doc,
 } from 'firebase/firestore'
 import type { Product } from '../../utils/types'
 import { app } from '../../firebase/client'
@@ -33,20 +33,23 @@ export const fetchProducts = async (
     let totalPages = 0
 
     // Your code here
-    let q = query(productsRef, orderBy('id', 'asc'));
+    let q = query(productsRef, orderBy('id', 'asc'))
 
     if (queryStr) {
-        q = query(productsRef, where('name', '>=', queryStr), orderBy('id', 'asc'))
+        q = query(
+            productsRef,
+            where('name', '>=', queryStr),
+            orderBy('id', 'asc')
+        )
     }
 
     const querySnapshot = await getDocs(q)
     querySnapshot.forEach((doc) => {
         const data = doc.data() as Product
-        products.push({ ...data, id: Number(doc.id) }); // Ensure `id` is a number
+        products.push({ ...data, id: Number(doc.id) }) // Ensure `id` is a number
     })
 
     totalPages = Math.ceil(products.length / pageSize)
-
 
     return { products, totalPages }
 }
@@ -69,7 +72,6 @@ export const addProduct = async (product: Omit<Product, 'id'>) => {
     const newProduct = { ...product, id: newID }
     await addDoc(productsRef, newProduct)
 
-
     return { id: newID, ...product }
 }
 
@@ -84,8 +86,8 @@ export const deleteProduct = async (productId: number) => {
         const docToDelete = snapshot.docs[0]
         await deleteDoc(doc(db, 'products', docToDelete.id))
         return { id: productId }
-    }   else {
-        console.log("Product with the ID ${productId} not found")
+    } else {
+        console.log('Product with the ID ${productId} not found')
     }
 
     return { id: 0 }

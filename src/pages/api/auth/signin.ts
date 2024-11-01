@@ -32,7 +32,7 @@ export const GET: APIRoute = async ({ request, cookies, redirect }) => {
         maxAge: fiveDays,
         httpOnly: true,
         secure: true,
-        sameSite: 'strict'
+        sameSite: 'strict',
     })
     return redirect('/dashboard')
 }

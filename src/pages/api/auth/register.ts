@@ -27,7 +27,6 @@ export const POST: APIRoute = async ({ request, redirect }) => {
         })
         console.log('Successfully created new user:', userRecord.uid)
         return redirect('/signin')
-
     } catch (error) {
         console.log(error)
         return new Response(`Something went wrong`, {
